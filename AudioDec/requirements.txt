@@ -1,0 +1,12 @@
+soundfile
+sounddevice
+numpy
+torch
+torchaudio
+scikit-learn
+librosa
+argparse
+pyyaml
+tqdm
+tensorboardX
+
