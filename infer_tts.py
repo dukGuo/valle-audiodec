@@ -71,7 +71,7 @@ def do_tts(hp,args):
     eos_id = hp.num_semantic + hp.num_acoustic + 1
     
     first_idx = np.asarray(list(semantic_token) + [eos_id] + list(acoustic_token[:, 0]))
-    full_semantic = np.stack([semantic_token] * dim_size, axis=1)  # t-> t,8
+    full_semantic = np.stack([semantic_token] * dim_size, axis=1)  # t,8
     eos_full = np.stack([np.asarray([eos_id, ])] * dim_size, axis=1)  # 1, 8
     full_idx = np.concatenate([full_semantic, eos_full, acoustic_token], axis=0)  
         
@@ -91,13 +91,10 @@ def do_tts(hp,args):
     with torch.no_grad():
         first_idx = ar.inference(data,max_len,20)
         full_idx = nar.inference(data)        
-
-                
         full_idx = (full_idx - (hp.num_semantic+1))[:, :, :-1] 
-                
+             
         prompt_idx = full_idx[:,:,:data['prompt_len']]        
         full_idx = full_idx[:,:,data['prompt_len']:]
-
         full_idx = full_idx.squeeze(0)
         
         inc = (torch.arange(8)*1024).to(device)
@@ -114,8 +111,7 @@ def do_tts(hp,args):
             './test/syn.wav',
             res_wav,
             sample_rate,
-            "PCM_16",
-        )
+            "PCM_16",)
 
         
 if __name__ == '__main__':
@@ -148,7 +144,7 @@ if __name__ == '__main__':
                     help='out_dir')
     parser.add_argument('--text',
                     type=str,
-                    default='我是张雍茂！',
+                    default='这一段戏同样也表达了亚瑟说的，我原本以为我的人生是一出悲剧，但其实它是一出戏剧。',
                     help='out_dir')
     parser.add_argument('--device',
                         type=str,
