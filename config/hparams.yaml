@@ -1,0 +1,31 @@
+hparams:
+
+# input_settings:
+    num_semantic: 216 # pinyin
+    num_acoustic: 1024 #codebook num of codec
+    acoustic_num_layer: 8 # codec layer num
+
+# Training_settings:
+    batch_size: 8 
+    num_workers: 16 
+    save_checkpoint_step: 5000
+    learning_rate: 0.0002
+    max_training_steps: 4000000
+    temperature: 1.0
+    grad_accu: 40
+    dist_backend: "nccl" # distributed training setting
+    dist_url: "tcp://localhost:12345"
+
+# AR setting:
+    GPT2_vocab_size: 1245 # padding+semantic+2eos acoustic
+    GPT2_n_positions: 2048  # 支持的最长长度
+    GPT2_n_ctx: 2048   # 等同于n_positions
+    GPT2_n_embd: 1024  # 隐藏层dim
+    GPT2_n_layer: 12  # 多少层
+    GPT2_n_head: 16  # 多少个头
+
+# NAR setting:
+    nar_vocab_size: 1245 # padding+semantic+acoustic+2eos
+    nar_n_emb: 1024
+    nar_n_layer: 12
+    nar_n_head: 16
