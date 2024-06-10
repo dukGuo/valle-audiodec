@@ -40,52 +40,58 @@ class NAR(nn.Module):
 
 
     def inference(self, data):
-        
+        # unpack data
         init_full_idx = data['full_idx']
         pos_ids = data['pos_ids']
         tags = data['tags']
+        prompt_len = data['prompt_len']
         
         # Calculate lengths
-        prompt_len = data['prompt_len']
-        semantic_len = (tags == 1).sum(dim=1) # semantic len
-        acoustic_len = (tags == 2).sum(dim=1) # acoustic len
+        semantic_len = (tags == 1).sum(dim=1)
+        acoustic_len = (tags == 2).sum(dim=1)
         
-        # Initializing the sequence tensor with indices for each acoustic layer
-        full_idx = torch.stack([data['first_idx']] * self.hparams.acoustic_num_layer, dim=1)  # b, 8, t
-        full_idx[:, :, semantic_len[0]:semantic_len[0] + prompt_len[0]] = init_full_idx[:,semantic_len[0]:, :].transpose(1,2) 
+        # Initialize the sequence tensor with indices for each acoustic layer
+        full_idx = torch.stack([data['first_idx']] * self.hparams.acoustic_num_layer, dim=1)
+        full_idx[:, :, semantic_len[0]:semantic_len[0] + prompt_len[0]] = init_full_idx[:,semantic_len[0]:, :].transpose(1, 2)
+        
         batch_size, layer_size, t_size = full_idx.size()
         
-        layer_index = torch.ones(size=[batch_size,], device=self.device) # [b,]
+        # Create masks
+        layer_index = torch.ones(size=[batch_size,], device=self.device)
+        layer_mask = layer_index.unsqueeze(1) > torch.arange(self.hparams.acoustic_num_layer, device=self.device).unsqueeze(0)
+        prompt_mask = (semantic_len + prompt_len).unsqueeze(1) > torch.arange(t_size, device=self.device).unsqueeze(0)
         
-        layer_mask = layer_index.unsqueeze(1) > torch.arange(self.hparams.acoustic_num_layer, device=self.device).unsqueeze(0) #b, 8
-        prompt_mask = (semantic_len + prompt_len).unsqueeze(1) > torch.arange(t_size, device=self.device).unsqueeze(0) # b, t
-        
-        mask = layer_mask.unsqueeze(2) + prompt_mask.unsqueeze(1) # b, n_codebbok, 1
+        # Combine masks
+        mask = layer_mask.unsqueeze(2) + prompt_mask.unsqueeze(1)
         full_idx = torch.where(mask, full_idx, torch.zeros_like(full_idx))
-        for layer_index in range(1,self.hparams.acoustic_num_layer):
+        
+        for layer_index in range(1, self.hparams.acoustic_num_layer):
+            layer_index_tensor = torch.LongTensor([layer_index, ]).repeat(batch_size, ).to(self.device)
+            layer_mask = layer_index_tensor.unsqueeze(1) > torch.arange(self.hparams.acoustic_num_layer, device=self.device).unsqueeze(0)
             
-            layer_index = torch.LongTensor([layer_index, ]).repeat(batch_size, ).to(self.device)
-            layer_mask = layer_index.unsqueeze(1) > torch.arange(self.hparams.acoustic_num_layer, device=self.device).unsqueeze(0)
-
-            # total mask for x
-            mask = (layer_mask.unsqueeze(2) + prompt_mask.unsqueeze(1))
-            mask_full_idx = torch.where(mask, full_idx, torch.zeros_like(full_idx))  
-            embeddings = []
-            for i in range(layer_size):
-                embeddings.append(self.token_embeddings[i](mask_full_idx[:, i, :]))
-            embeddings = torch.cat(embeddings, dim=-1) 
-             
+            # Apply masks
+            mask = layer_mask.unsqueeze(2) + prompt_mask.unsqueeze(1)
+            mask_full_idx = torch.where(mask, full_idx, torch.zeros_like(full_idx))
+            
+            # Generate embeddings
+            embeddings = [self.token_embeddings[i](mask_full_idx[:, i, :]) for i in range(layer_size)]
+            embeddings = torch.cat(embeddings, dim=-1)
             embeddings = self.dense_layer(embeddings)
-            # layer embedding
-            res_embeddings = self.res_embedding(layer_index - 1).unsqueeze(1)  # [b, 1, d]
-            # position embeddings
+            
+            # Add layer and position embeddings
+            res_embeddings = self.res_embedding(layer_index_tensor - 1).unsqueeze(1)
             outputs = embeddings + self.wpe(pos_ids) + res_embeddings
+            
+            # Apply transformer layers
             for layer in self.transformer_layers:
                 outputs = layer(outputs)
-            logits = self.mlp_layer(outputs)  
-            logits[:, :, -2:] = -float('Inf') 
-            # NAR use greedy search
+            
+            logits = self.mlp_layer(outputs)
+            logits[:, :, -2:] = -float('Inf') # unused token
+            
+            # NAR greedy search
             samples = torch.argmax(logits, dim=-1) + self.hparams.num_semantic + 1
             samples = torch.where(prompt_mask, full_idx[:, layer_index, :], samples)
             full_idx[:, layer_index, :] = samples
+        
         return full_idx[:, :, semantic_len[0]:]
