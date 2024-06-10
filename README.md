@@ -46,6 +46,11 @@ https://wenetspeech4tts.github.io/wenetspeech4tts/
     --text 负责指挥的将军在一旁交代着注意事项，每个人在上面最多只能待九十秒。
 ```
 
+> To improve audio quality and ensure consistent volume levels across different inputs, it is advisable to normalize the loudness of the prompt waveform before conducting inference. This preprocessing step helps achieve uniformity in the audio input, which can lead to more reliable inference outcomes.
+> ```
+> sox $in_wave -r $sample_rate -b 16 --norm=-6 $out_wave
+> ```
+
 ## References
 This repository is developed based on the following repositories.
 
