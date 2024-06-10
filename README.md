@@ -3,6 +3,7 @@
 Inference code for [Wenetspeech4TTS/Audiodec-Valle-Wenetspeech4TTS](https://huggingface.co/Wenetspeech4TTS/Audiodec-Valle-Wenetspeech4TTS)
 
 ## Installation
+
   ``` bash
   git clone 
   cd valle-audiodec
@@ -28,6 +29,10 @@ mv exp AudioDec/exp
 - VALL-E *Basic* :VALL-E trained with the WenetSpeech4TTS Basic subset
 - VALL-E *Standard*: VALL-E *Basic* fine-tuning with the WenetSpeech4TTS Standard subset
 - VALL-E *Premium*: VALL-E *Standard* fine-tuning with the WenetSpeech4TTS Premium subset
+## Speech Sample
+
+https://wenetspeech4tts.github.io/wenetspeech4tts/
+
 ## Inference
 
 ``` bash
