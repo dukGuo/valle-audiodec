@@ -31,7 +31,8 @@ mv exp AudioDec/exp
 - VALL-E *Premium*: VALL-E *Standard* fine-tuning with the WenetSpeech4TTS Premium subset
 ## Speech Sample
 
-https://wenetspeech4tts.github.io/wenetspeech4tts/
+https://wenetspeech4tts.github.io/wenetspeech4tts
+
 https://rxy-j.github.io/HPMD-TTS
 
 ## Inference
