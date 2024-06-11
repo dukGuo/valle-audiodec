@@ -32,6 +32,7 @@ mv exp AudioDec/exp
 ## Speech Sample
 
 https://wenetspeech4tts.github.io/wenetspeech4tts/
+https://rxy-j.github.io/HPMD-TTS
 
 ## Inference
 
