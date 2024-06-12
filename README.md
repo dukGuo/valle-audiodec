@@ -5,14 +5,14 @@ Inference code for [Wenetspeech4TTS/Audiodec-Valle-Wenetspeech4TTS](https://hugg
 ## Installation
 
   ``` bash
-  git clone 
+  git clone https://github.com/dukGuo/valle-audiodec.git
   cd valle-audiodec
   pip install -r requirements.txt
   ```
 
 ## Download pre-train model
 ### AudioDec
-We use [AudioDec](https://github.com/facebookresearch/AudioDec/) as our speech tokenizer to further improve audio quality.
+We use [AudioDec](https://github.com/facebookresearch/AudioDec/) as our speech tokenizer instead of [encodec](https://github.com/facebookresearch/encodec) to further improve audio quality.
 
 Please download the whole [exp](https://github.com/facebookresearch/AudioDec/releases/download/pretrain_models_v02/exp.zip) folder, unzip and put it in the `AudioDec/exp` directory.
 
